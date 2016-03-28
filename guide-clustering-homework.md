@@ -28,7 +28,7 @@ The host cell will then attempt to repair this cut with one of several different
 ## Sample CRISPR Library Functional Screening Data
 CRISPR can be performed in a massively parallel manner to determine the function of many genes simultaneously in an experiment called a functional screen. In a screen, a set of several thousand guide RNAs targeting thousands of genes are synthesized together in a pool and then introduced to a population of cells such that each cell gets (ideally) one and only one member of the guide set. The distribution (mass function) of this guide RNA set can be measured by DNA sequencing, which maps each guide sequence to a “normalized read count” in a given sample. When a particular member sequence of the population decreases in abundance, this may be because it targets an essential gene and the host cell for the guide was killed. It is thought that greater depletion is correlated with greater guide *activity* (potency). In practice, not all guides perform equally for reasons that are still unknown.
 
-The data provided here comes from a recent real-world experiment. Several hundred genes (col 1) in a cancer cell line where targeted. Several guides (formally spacer sequences, col 2/3) where selected at different locations within each of several hundred genes. Using massively parallel sequencing and some minor data processing the normalized counts of each guide where computed under the following circumstances:
+The data provided here comes from a recent real-world experiment. Several hundred genes (col 1) in a cancer cell line were targeted. Several guides (formally spacer sequences, col 2/3) were selected at different locations within each of several hundred genes. Using massively parallel sequencing and some minor data processing the normalized counts of each guide were computed under the following circumstances:
 
 - Immediately upon construction of the delivery plasmid before introduction to cells. Column 4
 - 7 days after introduction to cells  without drugs (2 replicates).  Columns 5 and 6.
@@ -36,7 +36,7 @@ The data provided here comes from a recent real-world experiment. Several hundre
 - 7 days after introduction to cells along with the drug PLX (2 replicates). Columns 9 and 10.
 - 14 days after introduction to cells along with the drug PLX (2 replicates). Columns 11 and 12.
 
-All other factors, such as the number of cells and the nuclease, where held constant.
+All other factors, such as the number of cells and the nuclease, were held constant.
 
 ## Prior Art 
 Scientists are currently trying to figure out what features of a guide and the location it targets influence its behavior. Information is present in nucleic acids in mechanical (ie. curvature), chemical (ie. binding thermodynamics), and symbolic (ie. ATG is a start codon) forms. Some scientists have used Support Vector Machines and Logistic Regression to try and determine if particular bases or pairs of bases at particular positions in the guide make it more active. For example, a “G” in the right-most position may be beneficial. The results have been mixed and possibly suffer from over-fitting. A few key points are known:
