@@ -15,11 +15,22 @@ library(dplyr)
 Hacky prototyping because I like dplyr.
 In no way reflects my Python style as I have yet to find a PEP equivalent in R.
 
-**PCA on numeric data** (no feature vectorizing yet)  
+**Exploratory analysis - PCA on numeric data** (no feature creation/vectorizing yet)  
+
+
+I want to see which features contribute to principal components that account for most of the variance in the dataset.
+
+_Steps_  
+1) Perform PCA and examine the rotation matrix.  
+2) Determine how much each PC contributes to the variance.
 ```{r}
+link_to_data <- "https://github.com/rainiera/guide-cluster/blob/master/data/example_guide_data.tsv?raw=true"
+guide_data = read.table(link_to_data, sep="\t", header=TRUE)
 
-guide_data = read.table("../data/example_guide_data.tsv", header=TRUE)
+# Here's what the data looks like
+head(guide_data)
 
+# Select the non-numeric features, perform PCA, and look at the rotation matrix
 guide_data %>%
     select(-c(gene_name, spacer_id, spacer_seq)) %>%
     scale() %>%
@@ -27,16 +38,18 @@ guide_data %>%
     pca_data
 pca_data$rotation
 
+# Create and plot the rotation matrix to visualize which features contribute to the principal components
 rotation_data <- data.frame(pca_data$rotation, variable=row.names(pca_data$rotation))
 arrow_style <- arrow(length = unit(0.05, "inches"),
                      type = "closed")
 ggplot(rotation_data) + 
     geom_segment(aes(xend=PC1, yend=PC2), x=0, y=0, arrow=arrow_style) +
     geom_text(aes(x=PC1, y=PC2, label=variable), hjust=0, size=3, color='red') +
-    xlim(-0.5, 0.5) +
-    ylim(-0.5, 0.5) +
+    xlim(-0.0, 0.5) +
+    ylim(-0.2, 0.3) +
     coord_fixed()
 
+# Make a bar graph to see how much % each component explains the variance
 percent <- 100*pca_data$sdev^2/sum(pca_data$sdev^2)
 perc_data <- data.frame(percent=percent, PC=1:length(percent))
 ggplot(perc_data, aes(x=PC, y=percent)) +
@@ -45,4 +58,43 @@ ggplot(perc_data, aes(x=PC, y=percent)) +
     ylim(0,80)
 
 ```
+
+
+Counts from the PLX treatment group seem to contribute to an entirely different principal component.
+
+
+
+**Adding activities to spacer sequences**
+
+
+PLX seems to be a drug for potentially treating malignant melanoma (probably *these* cancer cell lines). ([Smalley 2010](http://www.ncbi.nlm.nih.gov/pubmed/20496265).)
+
+Moreover, the rotation matrix from the PCA suggested that counts from the PLX treatment group contributed to an entirely different principal component. Thusly, I will leave it out for now and focus on the normalized counts without drug treatment.
+
+_Steps_  
+1) Average replicates for counts from 1 week and 2 weeks since plasmid introduction and into new columns, `norm_count_D7_mean` and `norm_count_D14_mean`.  
+2) Compute guide activities between days 0-7, 7-14, 0-14 and place in new columns, `act_0_7`, `act_7_14`, `act_0_14`.
+```{r}
+
+# Average replicates, leave only needed features
+guide_data %>%
+    mutate(norm_count_D7_mean = (norm_count_D7_Rep1 + norm_count_D7_Rep2) / 2) %>%
+    mutate(norm_count_D14_mean = (norm_count_D14_Rep1 + norm_count_D14_Rep2) / 2) %>%
+    select(c(gene_name,
+             spacer_id,
+             spacer_seq,
+             norm_count_plasmid,
+             norm_count_D7_mean,
+             norm_count_D14_mean))-> guide_data_modified
+
+# Compute guide activities
+guide_data_modified %>%
+    mutate(act_0_7 = -log2((norm_count_D7_mean/norm_count_plasmid))) %>%
+    mutate(act_7_14 = -log2((norm_count_D14_mean/norm_count_D7_mean))) %>%
+    mutate(act_0_14 = -log2((norm_count_D14_mean/norm_count_plasmid))) -> guide_data_acts
+
+# Sanity check
+head(guide_data_acts)
+```
+
 
