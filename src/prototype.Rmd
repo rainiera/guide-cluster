@@ -15,6 +15,7 @@ library(dplyr)
 Hacky prototyping because I like dplyr.
 In no way reflects my Python style as I have yet to find a PEP equivalent in R.
 
+
 **Exploratory analysis - PCA on numeric data** (no feature creation/vectorizing yet)  
 
 
@@ -98,3 +99,50 @@ head(guide_data_acts)
 ```
 
 
+**Vectorize spacer sequence nucleotide frequencies [WIP]**
+
+
+I want to count nucleotide frequencies in each spacer sequencies and vectorize them. Akin to using a Counter in Python and applying scikit-learn DictVectorizer.
+
+```{r}
+```
+
+
+**K-means**
+
+
+I want to cluster the activities.
+
+_Steps_
+1) Plot within-groups sum of squares against the number of clusters to find the slowdown at k number of clusters. [Stack Overflow post](http://stackoverflow.com/questions/15376075/cluster-analysis-in-r-determine-the-optimal-number-of-clusters/15376462#15376462)
+2) Perform k-means.
+
+```{r}
+# within groups sum of squares
+
+set.seed(1234)
+
+guide_data_acts %>%
+    select(c(act_0_7, act_7_14, act_0_14)) -> guide_acts_numeric
+
+wgss <- (nrow(guide_data_acts)-1) * sum(apply(guide_acts_numeric,2,var))
+for (i in 2:15) wgss[i] <- sum(kmeans(guide_acts_numeric,
+                                      nstart=10,
+                                      centers=i)$withinss)
+wgss_data <- data.frame(centers=1:15, wgss)
+ggplot(wgss_data, aes(x=centers, y=wgss)) +
+    geom_point() +
+    geom_line() +
+    xlab("Number of clusters") + ylab("Within groups sum of squares")
+
+guide_acts_numeric %>%
+    kmeans(centers=3) -> km
+
+guide_acts_cluster <- data.frame(guide_acts_numeric, cluster=factor(km$cluster))
+
+# for fast debugging - take random subsample of cluster data
+cluster_sample <- guide_acts_cluster[sample(1:nrow(guide_acts_cluster), 1000, replace=FALSE),]
+
+ggplot(cluster_sample, aes(x=act_7_14, y=act_0_14, color=cluster)) + geom_point()
+
+```
